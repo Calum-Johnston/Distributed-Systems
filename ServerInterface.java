@@ -2,5 +2,6 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface ServerInterface extends Remote {
-    String sayHello() throws RemoteException;
+    public String getString() throws RemoteException;
+	public void setString(String s) throws RemoteException;
 }
