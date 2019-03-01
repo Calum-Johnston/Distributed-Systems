@@ -2,20 +2,35 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
+import java.util.Map;
 	
 public class BackEndServer3 implements BackEndServerInterface {
 
 	private String status = "active";
+	Map<String, Integer> movieRatings = new HashMap<String, Integer>();
 
 	// Default Constructor
-  public BackEndServer3() { }
+	public BackEndServer3() { }
+	
+	public String getStatus(){
+		return status;
+	}
+
+	public void submitRating(String movie, int rating){
+		movieRatings.put(movie, rating);
+	}
+
+	public int getRating(String movie){
+		return 3;
+	}
 	
 	// Main method: 
 	// Instatntiates and registers an instance of the server with the rmi registry
-    public static void main(String args[]) {
+    public static void main(String args[]) { 
 			try {
 				// Defines the server name
-				String name = "backEnd";
+				String name = "backEnd3";
 				
 				// Create server object
 				BackEndServer3 obj = new BackEndServer3();
@@ -30,7 +45,8 @@ public class BackEndServer3 implements BackEndServerInterface {
 				registry.rebind(name, stub);
 
 				// Write ready message to console
-				System.err.println("BACK END SERVER ==== READY");
+				System.err.println("Back End Server ==== READY");
+
 
 			} catch (Exception e) {
 				System.err.println("Back End Server exception: " + e.toString());

@@ -2,11 +2,13 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
+import java.util.Map;
 	
 public class BackEndServer1 implements BackEndServerInterface {
 
 	private String status = "active";
-	ArrayList<String, Integer> movieRatings = new ArrayList<String, Integer>();
+	Map<String, Integer> movieRatings = new HashMap<String, Integer>();
 
 	// Default Constructor
 	public BackEndServer1() { }
@@ -16,7 +18,7 @@ public class BackEndServer1 implements BackEndServerInterface {
 	}
 
 	public void submitRating(String movie, int rating){
-		movieRatings.add(movie, rating);
+		movieRatings.put(movie, rating);
 	}
 
 	public int getRating(String movie){

@@ -19,7 +19,8 @@ public class Client {
 				FrontEndServerInterface stub = (FrontEndServerInterface) registry.lookup(host);
 
 				//Invoke a remote method
-				stub.findBackEndServer();
+				stub.submitRating("Inception", 10);
+				System.out.println(stub.getRating("Inception"));
 
 			} catch (Exception e) {
 				System.err.println("Client exception: " + e.toString());
