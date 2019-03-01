@@ -3,7 +3,7 @@ import java.rmi.registry.Registry;
 
 public class Client {
 
-    private Client() {}
+    public Client() {}
 
     public static void main(String[] args) {
 
@@ -12,7 +12,7 @@ public class Client {
 
 			try {
 				// Get registry
-				Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1010);
+				Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
 
 				// Lookup the remote object "frontEnd" from registry (represents the Server)
 				// and create a stub for it

@@ -3,13 +3,13 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 	
-public class BackEndServer implements BackEndServerInterface {
+public class BackEndServer2 implements BackEndServerInterface {
 
 	private String myString = "";
 	private String status = "active";
 
 	// Default Constructor
-  public Server() { }
+  public BackEndServer2() { }
 
 	// Implement methods from ServerInterface;
   public void setString(String s) {
@@ -28,13 +28,13 @@ public class BackEndServer implements BackEndServerInterface {
 				String name = "backEnd";
 				
 				// Create server object
-				BackEndServer obj = new BackEndServer();
+				BackEndServer2 obj = new BackEndServer2();
 
 				// Create remote object stub from server object
 				BackEndServerInterface stub = (BackEndServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 
 				// Get registry
-				Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1010);
+				Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
 
 				// Bind the remote object's stub in the registry
 				registry.rebind(name, stub);

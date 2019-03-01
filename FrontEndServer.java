@@ -22,7 +22,7 @@ public class FrontEndServer implements FrontEndServerInterface{
             FrontEndServerInterface stub = (FrontEndServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("127.0.0.1", 1010);
+            Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
 
             // Bind the remote object's stub in the registry
             registry.rebind(name, stub);
