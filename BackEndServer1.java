@@ -5,19 +5,22 @@ import java.rmi.server.UnicastRemoteObject;
 	
 public class BackEndServer1 implements BackEndServerInterface {
 
-	private String myString = "";
 	private String status = "active";
+	ArrayList<String, Integer> movieRatings = new ArrayList<String, Integer>();
 
 	// Default Constructor
-  public BackEndServer1() { }
-
-	// Implement methods from ServerInterface;
-  public void setString(String s) {
-		this.myString = s;
-  }
+	public BackEndServer1() { }
 	
-	public String getString() {
-		return myString;
+	public String getStatus(){
+		return status;
+	}
+
+	public void submitRating(String movie, int rating){
+		movieRatings.add(movie, rating);
+	}
+
+	public int getRating(String movie){
+		return 3;
 	}
 	
 	// Main method: 

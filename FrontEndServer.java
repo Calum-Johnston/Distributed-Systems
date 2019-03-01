@@ -8,14 +8,44 @@ public class FrontEndServer implements FrontEndServerInterface {
 	private String myString = "";
 
 	// Default Constructor
-  public FrontEndServer() { }
+	public FrontEndServer() { }
+
+
+
+
+	
+	public void submitRating(String movie, int rating){
+
+	}
+
+	public int getRating(String movie){
+		return 2;
+	}
+
+
+
+
+
 
 	// Implement methods from ServerInterface;
-  public void findBackEndServer() throws RemoteException{
+  public BackEndServerInterface findBackEndServer(){
 		Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
 		String[] serverList = registry.list();
+		for(String serverName : serverList){
+			BackEndServerInterface stub = (BackEndServerInterface) registry.lookUp(serverName)
+			if(stub.getStatus().equals("active")){
+				break;
+			}
+		}
+		return stub;
 	}
 	
+
+
+
+
+
+
 	// Main method: 
 	// Instatntiates and registers an instance of the server with the rmi registry
     public static void main(String args[]) { 

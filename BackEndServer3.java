@@ -5,20 +5,10 @@ import java.rmi.server.UnicastRemoteObject;
 	
 public class BackEndServer3 implements BackEndServerInterface {
 
-	private String myString = "";
 	private String status = "active";
 
 	// Default Constructor
   public BackEndServer3() { }
-
-	// Implement methods from ServerInterface;
-  public void setString(String s) {
-		this.myString = s;
-  }
-	
-	public String getString() {
-		return myString;
-	}
 	
 	// Main method: 
 	// Instatntiates and registers an instance of the server with the rmi registry
