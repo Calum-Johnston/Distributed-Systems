@@ -1,0 +1,9 @@
+Client connects to front end server (via stub)
+Front End Server connects to a back end server (based on avaliability) (via stub)
+Client makes requests to front end, which make request to back end
+
+
+Questions?
+- Does front end server choose a back end server for every request the client makes?
+- If so, then even if multiple clients are connected only one thing can happen at once surely??
+- Why bother with front end, why not just cut out middle man
