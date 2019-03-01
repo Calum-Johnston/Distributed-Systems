@@ -40,8 +40,7 @@ public class BackEndServer1 implements BackEndServerInterface {
 				registry.rebind(name, stub);
 
 				// Write ready message to console
-				System.err.println("BACK END SERVER ==== READY");
-				System.out.println(registry.list());
+				System.err.println("Back End Server ==== READY");
 
 
 			} catch (Exception e) {

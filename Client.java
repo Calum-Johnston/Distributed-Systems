@@ -18,10 +18,8 @@ public class Client {
 				// and create a stub for it
 				FrontEndServerInterface stub = (FrontEndServerInterface) registry.lookup(host);
 
-				/* Invoke a remote method
-				System.out.println(stub.getString());
-				stub.setString("Hi");
-				System.out.println(stub.getString());*/
+				//Invoke a remote method
+				stub.findBackEndServer();
 
 			} catch (Exception e) {
 				System.err.println("Client exception: " + e.toString());

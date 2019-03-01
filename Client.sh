@@ -1,5 +1,5 @@
 #!/bin/bash
-#Runs the three backup servers
+#Runs the client program
 javac Client.java
 java Client
 $SHELL

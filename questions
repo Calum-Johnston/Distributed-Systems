@@ -2,6 +2,11 @@ Client connects to front end server (via stub)
 Front End Server connects to a back end server (based on avaliability) (via stub)
 Client makes requests to front end, which make request to back end
 
+CLient invokes a method through front end server (fes connects to an available back end server and then does stuff, then close connection)
+
+
+FLOW OF UPDATES:
+- Periodically checks for updates
 
 Questions?
 - Does front end server choose a back end server for every request the client makes?
