@@ -7,34 +7,40 @@ import java.util.Map;
 	
 public class BackEndServer1 implements BackEndServerInterface {
 
-	private String status = "active";
-	Map<String, Integer> movieRatings = new HashMap<String, Integer>();
+	private String status;
 
 	// Default Constructor
-	public BackEndServer1() { }
+	public BackEndServer1() {
+		movieRatings = new HashMap<String, Integer>();
+		status = "active";
+	}	 
 	
+
+	// Methods that will be remotely invoked
 	public String getStatus(){
 		return status;
 	}
 
-	public int retrieveRating(String movie){
+	public int retrieveRating(String movie, int[] prev_frontEnd, int updateID){
 		return movieRatings.get(movie);
 	}
 
-	public void submitRating(String movie, int rating){
-		movieRatings.put(movie, rating);
-	}
-
-	public void updateRating(String movie, int rating){
-		movieRatings.put(movie, rating);
+	public void updateRating(String movie, int rating, int[] prev_frontEnd, int updateID){
+	    movieRatings.put(movie, rating);
 	}
 	
+
+	// Methods relating to Gossip Architecture
+	Map<String, Integer> movieRatings;  // Acts as the value
+	int[] value_Timestamp;  // Acts as value timestamp  
+
+
 	// Main method: 
 	// Instatntiates and registers an instance of the server with the rmi registry
     public static void main(String args[]) { 
 			try {
 				// Defines the server name
-				String name = "backEnd";
+				String name = "backEnd1";
 				
 				// Create server object
 				BackEndServer1 obj = new BackEndServer1();

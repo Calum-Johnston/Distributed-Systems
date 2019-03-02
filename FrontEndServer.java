@@ -5,34 +5,39 @@ import java.rmi.server.UnicastRemoteObject;
 	
 public class FrontEndServer implements FrontEndServerInterface {
 
-		private String myString = "";
+		// Represents the latest version of data accessed by FE
+		int[] prev_frontEnd;
+		int[] prev_backEnd1;
+		int[] prev_backEnd2;
+		int[] prev_backEnd3;
+		int updateID; 
 
 		// Default Constructor
-		public FrontEndServer() { }
+		public FrontEndServer() {
+				prev_backEnd1 = new int[3];
+				prev_backEnd2 = new int[3];
+				prev_backEnd3 = new int[3];
+				prev_frontEnd = new int[3];
+				updateID = 0;
+		}
 
 
 
-
+		// QUERY OPERATION
 		public int retrieveRating(String movie){
 				int rating = 0;
 				BackEndServerInterface stub = findBackEndServer();
 				try{
-						rating = stub.retrieveRating(movie);
+						rating = stub.retrieveRating(movie, prev_frontEnd, updateID);
 				} catch (Exception e){}
 				return rating;
 		}
 
-		public void submitRating(String movie, int rating){
-				BackEndServerInterface stub = findBackEndServer();
-				try{ 
-						stub.submitRating(movie, rating);
-				} catch (Exception e){}
-		}
-
+		// UPDATE/INSERT OPERATION
 		public void updateRating(String movie, int rating){
 				BackEndServerInterface stub = findBackEndServer();
 				try{
-						stub.updateRating(movie, rating);
+						stub.updateRating(movie, rating, prev_frontEnd, updateID);
 				} catch (Exception e){}
 		}
 

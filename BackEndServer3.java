@@ -21,10 +21,6 @@ public class BackEndServer3 implements BackEndServerInterface {
 		return movieRatings.get(movie);
 	}
 
-	public void submitRating(String movie, int rating){
-		movieRatings.put(movie, rating);
-	}
-
 	public void updateRating(String movie, int rating){
 		movieRatings.put(movie, rating);
 	}

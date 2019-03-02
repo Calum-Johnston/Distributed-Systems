@@ -34,9 +34,6 @@ public class Client {
 							retrieveRating(stub);
 							break;
 						case 2:
-							submitRating(stub);
-							break;
-						case 3:
 							updateRating(stub);
 							break;
 						default:
@@ -59,7 +56,7 @@ public class Client {
 			try{
 				displayInterface();
 				result = Integer.parseInt(in.nextLine());
-				if(result < 5 && result > 0){
+				if(result < 4 && result > 0){
 					valid = true;
 				}else{
 					clearScreen();
@@ -87,26 +84,13 @@ public class Client {
 		}
 	}
 
-	// Invokes the submitRating method on the FE object
-	public static void submitRating(FrontEndServerInterface stub){
-		clearScreen();
-		String movie = getMovieName();
-		int rating = getMovieRating();
-		try{
-			stub.submitRating(movie, rating);
-		} catch (Exception e){
-			System.out.println("Error in submitting rating: " + e.toString());
-			e.printStackTrace();
-		}
-	}
-
 	// Invokes the updateRating method on the FE object
 	public static void updateRating(FrontEndServerInterface stub){
 		clearScreen();
 		String movie = getMovieName();
 		int rating = getMovieRating();
 		try{
-			// stub.updateRating(movie, rating);
+			stub.updateRating(movie, rating);
 		} catch (Exception e){
 			System.out.println("Error in updating rating: " + e.toString());
 			e.printStackTrace();
@@ -158,9 +142,8 @@ public class Client {
 		System.out.println("===============");
 		System.out.println("\nPlease select an option");
 		System.out.println("1: Retrieve a movie rating");
-		System.out.println("2: Submit a movie rating");
-		System.out.println("3: Update existing rating");
-		System.out.println("4: Quit");
+		System.out.println("2: Update existing rating");
+		System.out.println("3: Quit");
 	}
 
 	// Clears the console

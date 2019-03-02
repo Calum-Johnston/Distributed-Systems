@@ -1,14 +1,14 @@
-Client connects to front end server (via stub)
-Front End Server connects to a back end server (based on avaliability) (via stub)
-Client makes requests to front end, which make request to back end
 
-CLient invokes a method through front end server (fes connects to an available back end server and then does stuff, then close connection)
+RM: VECTOR TIME STAMP EXPLAINED
+- Store array Vi (vector clock for RM i)
+- Array is (x,y,z) where x is number of updates in p1, y number of updates in p2 and z number of updates in p3
+- When transmitting data, pass the vector clock (x, y, z)
+- When recieving data, set vector clock of current RM (a,b,c) to (max(a, x), max(b, y), max(c, z)) KNOWN AS MERGE OPERATION
+e -> e' since V(e) < V(e')
+e concurrent to e' if neither V(e) <= V(e') and vice versa
+
+- Can't process a request if one of the value (a, b, c) are less than the timestamp it currently has
+- UPDATE RM every few updates, or when it needs information
 
 
-FLOW OF UPDATES:
-- Periodically checks for updates
 
-Questions?
-- Does front end server choose a back end server for every request the client makes?
-- If so, then even if multiple clients are connected only one thing can happen at once surely??
-- Why bother with front end, why not just cut out middle man

@@ -21,10 +21,6 @@ public class BackEndServer2 implements BackEndServerInterface {
 		return movieRatings.get(movie);
 	}
 
-	public void submitRating(String movie, int rating){
-		movieRatings.put(movie, rating);
-	}
-
 	public void updateRating(String movie, int rating){
 		movieRatings.put(movie, rating);
 	}
@@ -34,7 +30,7 @@ public class BackEndServer2 implements BackEndServerInterface {
     public static void main(String args[]) { 
 			try {
 				// Defines the server name
-				String name = "backEnd1";
+				String name = "backEnd2";
 				
 				// Create server object
 				BackEndServer2 obj = new BackEndServer2();
