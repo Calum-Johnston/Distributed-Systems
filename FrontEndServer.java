@@ -13,7 +13,15 @@ public class FrontEndServer implements FrontEndServerInterface {
 
 
 
-	
+		public int retrieveRating(String movie){
+				int rating = 0;
+				BackEndServerInterface stub = findBackEndServer();
+				try{
+						rating = stub.retrieveRating(movie);
+				} catch (Exception e){}
+				return rating;
+		}
+
 		public void submitRating(String movie, int rating){
 				BackEndServerInterface stub = findBackEndServer();
 				try{ 
@@ -21,16 +29,18 @@ public class FrontEndServer implements FrontEndServerInterface {
 				} catch (Exception e){}
 		}
 
-		public int getRating(String movie){
-				return 2;
+		public void updateRating(String movie, int rating){
+				BackEndServerInterface stub = findBackEndServer();
+				try{
+						stub.updateRating(movie, rating);
+				} catch (Exception e){}
 		}
 
 
 
 
 
-
-	// Implement methods from ServerInterface;
+		// Implement methods from ServerInterface;
   	public BackEndServerInterface findBackEndServer() {
 				BackEndServerInterface stub = null;
 				try{

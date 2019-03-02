@@ -17,12 +17,16 @@ public class BackEndServer3 implements BackEndServerInterface {
 		return status;
 	}
 
+	public int retrieveRating(String movie){
+		return movieRatings.get(movie);
+	}
+
 	public void submitRating(String movie, int rating){
 		movieRatings.put(movie, rating);
 	}
 
-	public int getRating(String movie){
-		return 3;
+	public void updateRating(String movie, int rating){
+		movieRatings.put(movie, rating);
 	}
 	
 	// Main method: 
