@@ -1,11 +1,11 @@
-public class updateRecord {
+public class updateRequest {
 
     String movie;
     int rating;
     int[] prev;
     int updateID;
 
-    public updateRecord(String movie, int rating, int[] prev, int updateID) {
+    public updateRequest(String movie, int rating, int[] prev, int updateID) {
         this.movie = movie;
         this.rating = rating;
         this.prev = prev;

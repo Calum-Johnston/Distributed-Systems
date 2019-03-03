@@ -2,9 +2,9 @@ public class logRecord {
 
     int i;
     int[] ts;
-    updateRecord update;
+    updateRequest update;
 
-    public logRecord(int i, int[] ts, updateRecord update) {
+    public logRecord(int i, int[] ts, updateRequest update) {
         this.i = i;
         this.ts = ts;
         this.update = update;
@@ -26,11 +26,11 @@ public class logRecord {
         this.ts = ts;
     }
 
-    public updateRecord getUpdate() {
+    public updateRequest getUpdate() {
         return update;
     }
 
-    public void setUpdate(updateRecord update) {
+    public void setUpdate(updateRequest update) {
         this.update = update;
     }
 

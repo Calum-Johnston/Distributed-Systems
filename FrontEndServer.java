@@ -5,19 +5,12 @@ import java.rmi.server.UnicastRemoteObject;
 	
 public class FrontEndServer implements FrontEndServerInterface {
 
-		// Represents the latest version of data accessed by FE
-		int[] prev_frontEnd;
-		int[] prev_backEnd1;
-		int[] prev_backEnd2;
-		int[] prev_backEnd3;
-		int updateID; 
+		int[] prev;  // Represents the latest version of data accessed by FE / observed by the client
+		int updateID;  // Represents the ID for updates 
 
 		// Default Constructor
 		public FrontEndServer() {
-				prev_backEnd1 = new int[3];
-				prev_backEnd2 = new int[3];
-				prev_backEnd3 = new int[3];
-				prev_frontEnd = new int[3];
+				prev = new int[3];
 				updateID = 0;
 		}
 
@@ -28,7 +21,7 @@ public class FrontEndServer implements FrontEndServerInterface {
 				int rating = 0;
 				BackEndServerInterface stub = findBackEndServer();
 				try{
-						rating = stub.retrieveRating(movie, prev_frontEnd, updateID);
+						rating = stub.retrieveRating(movie, prev, updateID);
 				} catch (Exception e){}
 				return rating;
 		}
@@ -36,10 +29,12 @@ public class FrontEndServer implements FrontEndServerInterface {
 		// UPDATE/INSERT OPERATION
 		public void updateRating(String movie, int rating){
 				BackEndServerInterface stub = findBackEndServer();
-				updateRecord u = new updateRecord(movie, rating, prev_frontEnd, updateID);
+				updateRequest update = new updateRequest(movie, rating, prev, updateID);
 				try{
-						stub.updateRating(u);
+						int[] ts = stub.updateRating(update);  // ts represents the returned timestamp
+						prev = mergeTimestamps(prev, ts);  // Merges the returned timestamp with current one
 				} catch (Exception e){}
+				updateID += 1;
 		}
 
 
@@ -64,9 +59,16 @@ public class FrontEndServer implements FrontEndServerInterface {
 				}
 				return stub;
 		}
+
+		public int[] mergeTimestamps(int[] backEnd, int[] ts){
+				for(int a = 0; a < backEnd.length; a++) {
+				    if(backEnd[a] < ts[a]) {
+						    backEnd[a] = ts[a];
+						}
+				}
+				return backEnd;
+		}
 	
-
-
 
 
 

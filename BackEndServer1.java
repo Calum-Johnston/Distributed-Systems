@@ -17,13 +17,14 @@ public class BackEndServer1 implements BackEndServerInterface {
 	ArrayList<logRecord> logRecords = new ArrayList<logRecord>();  // Represents all updates recieved
 	int[] replica_Timestamp;  // Represents updares accepted by RM (might not yet be processed)  
 	ArrayList<Integer> operations = new ArrayList<Integer>();  // Contains a list of updates that have been applied
-	int serverNum = 0;  // Stores the server number
+	int serverNum;  // Stores the server number
 
 	// Default Constructor
 	public BackEndServer1() {
 		movieRatings = new HashMap<String, Integer>();
 		value_Timestamp = new int[3];
 		replica_Timestamp = new int[3];
+		serverNum = 0;
 		status = "active";
 	}	 
 	
@@ -37,21 +38,68 @@ public class BackEndServer1 implements BackEndServerInterface {
 		return movieRatings.get(movie);
 	}
 
-	public void updateRating(updateRecord update) {
+	public int[] updateRating(updateRequest update) {
+		// ts is a unique timestamp the RM assigns to the update
+		int[] ts = update.getPrev();
 		
-		// Operation not yet applied
+		// Checks if RM has already processed the request
 		if(!(operations.contains(update.getupdateID()))){ 
 
 			// Increment replace timestamp for server
 			// Counts number of updates recieved from FE
-			replica_Timestamp[serverNum] += 1;  
+			replica_Timestamp[serverNum] += 1;
+		  
+			// Create the log record
+			ts[serverNum] = replica_Timestamp[serverNum];
+			logRecord log = new logRecord(serverNum, ts, update);
+			logRecords.add(log);
 
-			// Create log record
-			
+			// Checks whether it can add the update
+			boolean applyUpdate = true;
+			for(int a = 0; a < value_Timestamp.length; a++) {
+				if(update.getPrev()[a] > value_Timestamp[a]) {
+					applyUpdate = false;
+				}
+			}
+
+			// Applies the update
+			if(applyUpdate = true) {
+				movieRatings.put(update.getMovie(), update.getRating());
+			}
+
+			// Update value_timestamp
+			for(int a = 0; a < value_Timestamp.length; a++) {
+				if(value_Timestamp[a] < ts[a]) {
+					value_Timestamp[a] = ts[a];
+				}
+			}
+
+			// Added ID to executed table list
+			operations.add(update.getupdateID());
 		}
+
+		return ts;
 	}
 	
 
+
+
+	// Methods relating to gossip messaging
+	public void sendGossip() {
+		// Sends logRecords and its replica_Timestamp
+	}
+
+	public void recieveGossip(ArrayList<logRecord> incoming_logRecords, int[] incoming_replica_Timestamp) {
+		// Merge arriving log with own log
+		// 1. Add record from incoming_logRecords if
+
+		
+
+		// Apply updates that have become stable and not yet executed
+
+		// Eliminate records from log and executed table 
+		// when they have been known to be applied everywhere
+	}
 
 
 	// Main method: 
