@@ -37,19 +37,18 @@ public class BackEndServer1 implements BackEndServerInterface {
 		return movieRatings.get(movie);
 	}
 
-	public void updateRating(String movie, int rating, int[] prev_frontEnd, int updateID){
+	public void updateRating(updateRecord update) {
 		
 		// Operation not yet applied
-		if(!(operations.contains(updateID))){ 
+		if(!(operations.contains(update.getupdateID()))){ 
 
 			// Increment replace timestamp for server
 			// Counts number of updates recieved from FE
 			replica_Timestamp[serverNum] += 1;  
 
 			// Create log record
-			//(make new class)
+			
 		}
-	    movieRatings.put(movie, rating);
 	}
 	
 

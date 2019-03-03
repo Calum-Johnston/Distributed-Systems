@@ -36,8 +36,9 @@ public class FrontEndServer implements FrontEndServerInterface {
 		// UPDATE/INSERT OPERATION
 		public void updateRating(String movie, int rating){
 				BackEndServerInterface stub = findBackEndServer();
+				updateRecord u = new updateRecord(movie, rating, prev_frontEnd, updateID);
 				try{
-						stub.updateRating(movie, rating, prev_frontEnd, updateID);
+						stub.updateRating(u);
 				} catch (Exception e){}
 		}
 
