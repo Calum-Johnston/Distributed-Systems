@@ -28,14 +28,28 @@ public class BackEndServer1 implements BackEndServerInterface {
 		status = "active";
 	}	 
 	
-
 	// Methods that will be remotely invoked
 	public String getStatus(){
 		return status;
 	}
 
-	public int retrieveRating(String movie, int[] prev_frontEnd, int updateID){
-		return movieRatings.get(movie);
+	public int retrieveRating(queryRequest query){
+		// Compare timestamp prev and value_timestamp
+		boolean applyQuery = true;
+		for(int a = 0; a < query.getPrev().length; a++){
+			if(query.getPrev()[a] > value_Timestamp[a]){
+				applyQuery = false;
+			}
+		}
+
+		if(applyQuery == true) {
+			return movieRatings.get(query.getMovie());
+		}else {
+			// Request gossip messages, then 
+		}
+
+		// return value_timestamp to merge, and result of queryy
+		return 0;
 	}
 
 	public int[] updateRating(updateRequest update) {

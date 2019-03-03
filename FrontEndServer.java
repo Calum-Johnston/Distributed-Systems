@@ -20,8 +20,9 @@ public class FrontEndServer implements FrontEndServerInterface {
 		public int retrieveRating(String movie){
 				int rating = 0;
 				BackEndServerInterface stub = findBackEndServer();
+				queryRequest query = new queryRequest(movie, prev);
 				try{
-						rating = stub.retrieveRating(movie, prev, updateID);
+						rating = stub.retrieveRating(query);
 				} catch (Exception e){}
 				return rating;
 		}
