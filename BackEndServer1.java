@@ -11,12 +11,13 @@ public class BackEndServer1 implements BackEndServerInterface {
 	// Variables relating to the server
 	private String status;
 
-	// Variables relating to Gossip ArchitAdecture
-	Map<String, Integer> movieRatings;  // Acts as the value
-	int[] value_Timestamp;  // Acts as value timestamp 
-	int[] replica_Timestamp;  //  
-	ArrayList<Integer> operations = new ArrayList<Integer>();  //Executed operations table (contains list of update IDs)
-	int serverNum = 0;
+	// Variables relating to Gossip Architecture
+	Map<String, Integer> movieRatings;  // Holds the data
+	int[] value_Timestamp;  // Represents updates present in movieRating
+	ArrayList<logRecord> logRecords = new ArrayList<logRecord>();  // Represents all updates recieved
+	int[] replica_Timestamp;  // Represents updares accepted by RM (might not yet be processed)  
+	ArrayList<Integer> operations = new ArrayList<Integer>();  // Contains a list of updates that have been applied
+	int serverNum = 0;  // Stores the server number
 
 	// Default Constructor
 	public BackEndServer1() {
