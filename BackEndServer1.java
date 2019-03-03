@@ -2,16 +2,27 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 	
 public class BackEndServer1 implements BackEndServerInterface {
 
+	// Variables relating to the server
 	private String status;
+
+	// Variables relating to Gossip ArchitAdecture
+	Map<String, Integer> movieRatings;  // Acts as the value
+	int[] value_Timestamp;  // Acts as value timestamp 
+	int[] replica_Timestamp;  //  
+	ArrayList<Integer> operations = new ArrayList<Integer>();  //Executed operations table (contains list of update IDs)
+	int serverNum = 0;
 
 	// Default Constructor
 	public BackEndServer1() {
 		movieRatings = new HashMap<String, Integer>();
+		value_Timestamp = new int[3];
+		replica_Timestamp = new int[3];
 		status = "active";
 	}	 
 	
@@ -26,13 +37,21 @@ public class BackEndServer1 implements BackEndServerInterface {
 	}
 
 	public void updateRating(String movie, int rating, int[] prev_frontEnd, int updateID){
+		
+		// Operation not yet applied
+		if(!(operations.contains(updateID))){ 
+
+			// Increment replace timestamp for server
+			// Counts number of updates recieved from FE
+			replica_Timestamp[serverNum] += 1;  
+
+			// Create log record
+			//(make new class)
+		}
 	    movieRatings.put(movie, rating);
 	}
 	
 
-	// Methods relating to Gossip Architecture
-	Map<String, Integer> movieRatings;  // Acts as the value
-	int[] value_Timestamp;  // Acts as value timestamp  
 
 
 	// Main method: 

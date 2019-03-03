@@ -11,4 +11,4 @@ e concurrent to e' if neither V(e) <= V(e') and vice versa
 - UPDATE RM every few updates, or when it needs information
 
 
-
+STABILITY CONDITION REFERS TO WHEN AN UPDATE HAS BEEN RECIEVED BUT CAN'T BE APPLIED (AS THE RM IS BEHIND IN UPDATES)
