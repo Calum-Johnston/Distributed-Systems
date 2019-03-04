@@ -68,6 +68,8 @@ public class BackEndServer3 implements BackEndServerInterface {
 
 		queryReturn returnQ;
 
+		System.out.println(applyQuery);
+
 		if(applyQuery == true) {
 			returnQ = new queryReturn(movieRatings.get(query.getMovie()), null, false);
 		}else {
@@ -104,6 +106,7 @@ public class BackEndServer3 implements BackEndServerInterface {
 
 			// Gets updates if needed
 			if(applyUpdate == false) {
+				System.out.println("hi");
 				requestAllGossipData();
 			}
 
@@ -162,6 +165,10 @@ public class BackEndServer3 implements BackEndServerInterface {
 		}
 		orderLogs();
 		addStableUpdates();
+
+		for(Map.Entry<String, Integer> entry : movieRatings.entrySet()){
+			System.out.println(entry.getKey() + ": " + entry.getValue());
+		}
 	}
 
 	// Method takes data from another RM and
@@ -292,7 +299,7 @@ public class BackEndServer3 implements BackEndServerInterface {
 
 
 			} catch (Exception e) {
-				System.err.println("Back End Server exception: " + e.toString());
+				System.err.println("Back End Server 3 exception: " + e.toString());
 				e.printStackTrace();
 			}
     }
