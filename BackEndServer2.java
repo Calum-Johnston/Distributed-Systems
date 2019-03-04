@@ -39,7 +39,7 @@ public class BackEndServer2 implements BackEndServerInterface {
 		movieRatings = new HashMap<String, Integer>();
 		value_Timestamp = new int[3];
 		replica_Timestamp = new int[3];
-		serverNum = 0;
+		serverNum = 1;
 		status = "active";
 		serverName = name;
 	}	 
@@ -57,7 +57,7 @@ public class BackEndServer2 implements BackEndServerInterface {
 		return status;
 	}
 
-	public int retrieveRating(queryRequest query){
+	public queryReturn retrieveRating(queryRequest query){
 		// Compare timestamp prev and value_timestamp
 		boolean applyQuery = true;
 		for(int a = 0; a < query.getPrev().length; a++){
@@ -66,25 +66,21 @@ public class BackEndServer2 implements BackEndServerInterface {
 			}
 		}
 
-		// NOTE== Should queue queries until they can be provided 
-		// However this involves implementing queue system at FE (not done yet)
-
-		System.out.println(applyQuery);
+		queryReturn returnQ;
 
 		if(applyQuery == true) {
-			return movieRatings.get(query.getMovie());
-			// No need to return timestamp as it hasn't changed
+			returnQ = new queryReturn(movieRatings.get(query.getMovie()), null, false);
 		}else {
 			requestAllGossipData();
-			// return movieRating and timestamp
+			returnQ = new queryReturn(movieRatings.get(query.getMovie()), value_Timestamp, true);
 		}
-
-		return 0;
+		return returnQ;
 	}
 
 	public int[] updateRating(updateRequest update) {
+
 		// ts is a unique timestamp the RM assigns to the update
-		int[] ts = update.getPrev();
+		int[] ts = update.getPrev().clone();
 
 		// Checks if RM has already processed the request
 		if(!(operations.contains(update.getupdateID()))){ 
@@ -92,7 +88,7 @@ public class BackEndServer2 implements BackEndServerInterface {
 			// Increment replace timestamp for server
 			// Counts number of updates recieved from FE
 			replica_Timestamp[serverNum] += 1;
-		  
+
 			// Create the log record
 			ts[serverNum] = replica_Timestamp[serverNum];
 			logRecord log = new logRecord(serverNum, ts, update);
@@ -106,8 +102,10 @@ public class BackEndServer2 implements BackEndServerInterface {
 				}
 			}
 
+			System.out.println(applyUpdate);
+
 			// Gets updates if needed
-			if(applyUpdate = false) {
+			if(applyUpdate == false) {
 				requestAllGossipData();
 			}
 
@@ -166,6 +164,9 @@ public class BackEndServer2 implements BackEndServerInterface {
 		}
 		orderLogs();
 		addStableUpdates();
+		for(Map.Entry<String, Integer> entry : movieRatings.entrySet()){
+			System.out.println(entry.getKey() + ": " + entry.getValue());
+		}	
 	}
 
 	// Method takes data from another RM and
@@ -280,7 +281,7 @@ public class BackEndServer2 implements BackEndServerInterface {
 				String name = "backEnd2";
 				
 				// Create server object
-				BackEndServer1 obj = new BackEndServer1(name);
+				BackEndServer2 obj = new BackEndServer2(name);
 
 				// Create remote object stub from server object
 				BackEndServerInterface stub = (BackEndServerInterface) UnicastRemoteObject.exportObject(obj, 0);
@@ -292,11 +293,11 @@ public class BackEndServer2 implements BackEndServerInterface {
 				registry.rebind(name, stub);
 
 				// Write ready message to console
-				System.err.println("Back End Server ==== READY");
+				System.err.println("Back End Server 2 ==== READY");
 
 
 			} catch (Exception e) {
-				System.err.println("Back End Server exception: " + e.toString());
+				System.err.println("Back End Server 2 exception: " + e.toString());
 				e.printStackTrace();
 			}
     }

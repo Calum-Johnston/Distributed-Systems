@@ -74,9 +74,11 @@ public class Client {
 	public static void retrieveRating(FrontEndServerInterface stub){
 		clearScreen();
 		String movie = getMovieName();
+		System.out.println("Enter server name");
+		String server = in.nextLine();
 		int rating = 0;
 		try{
-			rating = stub.retrieveRating(movie);
+			rating = stub.retrieveRating(movie, server);
 			System.out.println("The movie: " + movie + " has a rating of: " + rating);
 		} catch (Exception e){
 			System.out.println("Error in retrieving rating: " + e.toString());
@@ -89,9 +91,11 @@ public class Client {
 		clearScreen();
 		String movie = getMovieName();
 		int rating = getMovieRating();
+		System.out.println("Enter server name");
+		String server = in.nextLine();
 		try{
 			System.out.println("Updating record");
-			stub.updateRating(movie, rating);
+			stub.updateRating(movie, rating, server);
 		} catch (Exception e){
 			System.out.println("Error in updating rating: " + e.toString());
 			e.printStackTrace();

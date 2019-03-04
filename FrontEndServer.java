@@ -17,32 +17,31 @@ public class FrontEndServer implements FrontEndServerInterface {
 
 
 		// QUERY OPERATION
-	public int retrieveRating(String movie){
+	public int retrieveRating(String movie, String server){
 		int rating = 0;
-		BackEndServerInterface stub = findBackEndServer();
+		BackEndServerInterface stub = findBackEndServer(server);
 		queryRequest query = new queryRequest(movie, prev);
+		queryReturn q = null;
 		try{
-			rating = stub.retrieveRating(query);
-		} catch (Exception e){}
-		return rating;
+			q = stub.retrieveRating(query);
+			if(q.getUpdate() == true){
+				prev = mergeTimestamps(prev, q.getvalue_TS());
+			}
+		} catch (Exception e){
+			System.out.println("Error in getting Query");
+		}
+		return q.getRating();
 	}
 
 	// UPDATE/INSERT OPERATION
-	public void updateRating(String movie, int rating){
-		BackEndServerInterface stub = findBackEndServer();
+	public void updateRating(String movie, int rating, String server){
+		BackEndServerInterface stub = findBackEndServer(server);
 		updateRequest update = new updateRequest(movie, rating, prev, updateID);
-		System.out.println(updateID);
-		for(int i : prev){
-			System.out.println(i);
-		}
 		try{
 			int[] ts = stub.updateRating(update);  // ts represents the returned timestamp
 			prev = mergeTimestamps(prev, ts);  // Merges the returned timestamp with current one
 		} catch (Exception e){}
-		for(int i : prev){
-			System.out.println(i);
-		}
-		System.out.println(updateID);
+		stub = null;
 		updateID += 1;
 	}
 
@@ -51,16 +50,18 @@ public class FrontEndServer implements FrontEndServerInterface {
 
 
 	// Implement methods from ServerInterface;
-  	public BackEndServerInterface findBackEndServer() {
+  	public BackEndServerInterface findBackEndServer(String server) {
 		try{
 			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
-			String[] serverList = registry.list();
+			BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(server);
+			return stub;
+			/*String[] serverList = registry.list();
 			for(String serverName : serverList){
 				BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(serverName);
 				if(stub.getStatus().equals("active")){
 					return stub;				
 				}
-			}
+			}*/
 		} catch (Exception e){
 			System.err.println("Exception in locating server: " + e.toString());
 			e.printStackTrace();

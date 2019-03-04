@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public interface BackEndServerInterface extends Remote {    
     public String getStatus() throws RemoteException;
-    public int retrieveRating(queryRequest query) throws RemoteException;
+    public queryReturn retrieveRating(queryRequest query) throws RemoteException;
     public int[] updateRating(updateRequest update) throws RemoteException;
 
     public ArrayList<logRecord> getLogRecord() throws RemoteException;
