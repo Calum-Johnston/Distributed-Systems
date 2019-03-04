@@ -1,4 +1,8 @@
-public class queryRequest {
+import java.io.Serializable;
+
+public class queryRequest implements Serializable {
+
+    public static final long serialVersionUID = 20120731125402L;
 
     String movie;
     int[] prev;

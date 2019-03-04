@@ -1,4 +1,8 @@
-public class logRecord {
+import java.io.Serializable;
+
+public class logRecord implements Serializable{
+
+    public static final long serialVersionUID = 20120731125401L;
 
     int i;
     int[] ts;

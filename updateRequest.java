@@ -1,4 +1,8 @@
-public class updateRequest {
+import java.io.Serializable;
+
+public class updateRequest implements Serializable{
+
+    public static final long serialVersionUID = 20120731125400L;
 
     String movie;
     int rating;

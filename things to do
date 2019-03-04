@@ -2,3 +2,6 @@ Chnage gossip messages so all servers send gossip messages then the log updates
 
 
 - Sorting of stableUpdates array
+
+
+- Not calling stub in front end??
