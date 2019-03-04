@@ -90,6 +90,7 @@ public class Client {
 		String movie = getMovieName();
 		int rating = getMovieRating();
 		try{
+			System.out.println("Updating record");
 			stub.updateRating(movie, rating);
 		} catch (Exception e){
 			System.out.println("Error in updating rating: " + e.toString());

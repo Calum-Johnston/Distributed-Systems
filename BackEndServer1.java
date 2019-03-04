@@ -80,6 +80,8 @@ public class BackEndServer1 implements BackEndServerInterface {
 		// ts is a unique timestamp the RM assigns to the update
 		int[] ts = update.getPrev();
 		
+		System.out.println("hi");
+
 		// Checks if RM has already processed the request
 		if(!(operations.contains(update.getupdateID()))){ 
 

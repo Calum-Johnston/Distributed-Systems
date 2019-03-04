@@ -32,7 +32,9 @@ public class FrontEndServer implements FrontEndServerInterface {
 				BackEndServerInterface stub = findBackEndServer();
 				updateRequest update = new updateRequest(movie, rating, prev, updateID);
 				try{
+						System.out.println("hi");
 						int[] ts = stub.updateRating(update);  // ts represents the returned timestamp
+						System.out.println("hello");
 						prev = mergeTimestamps(prev, ts);  // Merges the returned timestamp with current one
 				} catch (Exception e){}
 				updateID += 1;
@@ -44,21 +46,21 @@ public class FrontEndServer implements FrontEndServerInterface {
 
 		// Implement methods from ServerInterface;
   	public BackEndServerInterface findBackEndServer() {
-				BackEndServerInterface stub = null;
 				try{
 						Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
 						String[] serverList = registry.list();
 						for(String serverName : serverList){
-								stub = (BackEndServerInterface) registry.lookup(serverName);
+								BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(serverName);
+								System.out.println(serverName);
 								if(stub.getStatus().equals("active")){
-										break;				
+										return stub;				
 								}
 						}
 				} catch (Exception e){
 						System.err.println("Exception in locating server: " + e.toString());
 						e.printStackTrace();
 				}
-				return stub;
+				return null;
 		}
 
 		public int[] mergeTimestamps(int[] backEnd, int[] ts){
