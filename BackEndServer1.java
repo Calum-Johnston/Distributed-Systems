@@ -106,6 +106,7 @@ public class BackEndServer1 implements BackEndServerInterface {
 
 			// Gets updates if needed
 			if(applyUpdate == false) {
+				System.out.println("hi");
 				requestAllGossipData();
 			}
 
@@ -152,7 +153,7 @@ public class BackEndServer1 implements BackEndServerInterface {
 			String[] serverList = registry.list();
 			for(String registryServerName : serverList){
 				if(!(registryServerName.equals(serverName)) && !(registryServerName.equals("frontEnd"))){
-					BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(serverName);
+					BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(registryServerName);
 					ArrayList<logRecord> temp_Record = stub.getLogRecord();
 					int[] temp_replica = stub.getReplace_Timestamp();
 					updateLogs(temp_Record, temp_replica);
