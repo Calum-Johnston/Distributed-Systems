@@ -66,13 +66,19 @@ public class BackEndServer1 implements BackEndServerInterface {
 			}
 		}
 
+		// NOTE== Should queue queries until they can be provided 
+		// However this involves implementing queue system at FE (not done yet)
+
+		System.out.println(applyQuery);
+
 		if(applyQuery == true) {
 			return movieRatings.get(query.getMovie());
+			// No need to return timestamp as it hasn't changed
 		}else {
-			getGossip();
+			requestAllGossipData();
+			// return movieRating and timestamp
 		}
-
-		// return value_timestamp to merge, and result of queryy
+		
 		return 0;
 	}
 
@@ -127,7 +133,7 @@ public class BackEndServer1 implements BackEndServerInterface {
 
 	/* 
 	============================================
-	Methods relating to gossip messaging
+	Methods relating to gossip messaging 
 	============================================
 	*/  
 	
@@ -142,106 +148,121 @@ public class BackEndServer1 implements BackEndServerInterface {
 	}
 
 	// Method gets data from other RM machines to synchronise with
-	public void getGossip(){
+	public void requestAllGossipData(){
 		try{
 			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
 			String[] serverList = registry.list();
 			for(String registryServerName : serverList){
-				if(!(registryServerName.equals(serverName))){
+				if(!(registryServerName.equals(serverName)) && !(registryServerName.equals("frontEnd"))){
 					BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(serverName);
 					ArrayList<logRecord> temp_Record = stub.getLogRecord();
 					int[] temp_replica = stub.getReplace_Timestamp();
-					applyGossip(temp_Record, temp_replica);
+					updateLogs(temp_Record, temp_replica);
 				}
 			}
 		} catch (Exception e){
 			System.err.println("Exception in locating server: " + e.toString());
 			e.printStackTrace();
 		}
-	}
-
-	// Method sends current data to other RM machines to synchronise
-	public void sendGossip() {
-		try{
-			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
-			String[] serverList = registry.list();
-			for(String registryServerName : serverList){
-				if(!(registryServerName.equals(serverName))){
-					BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(serverName);
-					stub.applyGossip(logRecords, replica_Timestamp);
-				}
-			}
-		} catch (Exception e){
-			System.err.println("Exception in locating server: " + e.toString());
-			e.printStackTrace();
-		}
+		orderLogs();
+		addStableUpdates();
 	}
 
 	// Method takes data from another RM and
-	public void applyGossip(ArrayList<logRecord> incoming_logRecords, int[] incoming_replica_Timestamp) {
-		// Merge arriving log with own log
-		// 1. Add record from incoming_logRecords if record timestamp is less than current replica_Timestamp
+	public void updateLogs(ArrayList<logRecord> incoming_logRecords, int[] incoming_replica_Timestamp) {
+
+		// Merge arriving log from RM with current log
 		for(logRecord log : incoming_logRecords) {
 			boolean addLog = false;
+
+			// If log's TS is greater than the replica's TS than add the log
 			for(int a = 0; a < replica_Timestamp.length; a++) {
 				if(log.getTS()[a] > replica_Timestamp[a]){
 					addLog = true;
 				}
 			}
+
+			// Add the log to the logRecords
 			if(addLog = true){
 				logRecords.add(log);
 			}
 		}
 
-		// 2. RM merges replica_timestamp with incoming timestamp
+		// Merges replica_timestamp with incoming timestamp 
 		for(int a = 0; a < incoming_replica_Timestamp.length; a++) {
 			if(replica_Timestamp[a] < incoming_replica_Timestamp[a]){
 				replica_Timestamp[a] = incoming_replica_Timestamp[a];
 			}
 		}
+	}
 
-		// Apply updates that have become stable and not yet executed
-		ArrayList<logRecord> stableUpdates = new ArrayList<logRecord>();
+	public void orderLogs() {
+		for(int a = 0; a < logRecords.size(); a++) {
+			for(int b = 1; b < (logRecords.size() - a); b++){
+				int[] ts_a = logRecords.get(b - 1).getTS();
+				int[] ts_b = logRecords.get(b).getTS();
+				boolean less = false;
+				boolean more = false;
 
-		// 3: Loop through RM log of updates and add stable ones
+				for(int i = 0; i < ts_a.length; i++){
+					if(ts_a[i] > ts_b[i]){
+						more = true;
+					}else if(ts_a[i] < ts_b[i]){
+						less = true;
+					}
+				}
+
+				// Swap them 
+				if(more == true && less == false){
+					logRecord temp = logRecords.get(b - 1);
+					logRecords.set(b - 1, logRecords.get(b));
+					logRecords.set(b, temp);
+				}
+			}
+		}
+	}
+
+	// Apply updates that have become stable and not yet executed
+	public void addStableUpdates() {
+
+		// Loop through RM log of updates and update stable ones
 		for(logRecord log : logRecords){
+
 			// If update has not already been applied
 			if(!(operations.contains(log.getUpdate().getupdateID()))) {
-				// If the update is stable
 				boolean stable = true;
+
+				// Check is update is stable
 				for(int a = 0; a < value_Timestamp.length; a++){
 					if(log.getUpdate().getPrev()[a] > value_Timestamp[a]) {
 						stable = false;
 					}
 				}
+
+				// If the update is stable
 				if(stable == true){
-					stableUpdates.add(log);
+					applyStableUpdate(log);
 				}
 			}
 		}		
-		
-		// 4: Order the logs into suitable execution order (NOT IMPLEMENTED)
-		/*for(int a = 0; a < stableUpdates.size(); a++){
-			for(int b = 0; b < stableUpdates.size() - a; b++) {
-				for(int c = 0; c < )
-			}
-		}*/
-
-		// 5: Apply the stable updates
-		for(logRecord log : stableUpdates){
-			movieRatings.put(log.getUpdate().getMovie(), log.getUpdate().getRating());
-			// Update value_timestamp
-			for(int a = 0; a < value_Timestamp.length; a++) {
-				if(value_Timestamp[a] < log.getTS()[a]) {
-					value_Timestamp[a] = log.getTS()[a];
-				}
-			}
-			// Added ID to executed table list
-			operations.add(log.getUpdate().getupdateID());
-		}
 
 		// Eliminate records from log and executed table 
 		// when they have been known to be applied everywhere (NOT IMPLEMENTED)
+	}
+
+	public void applyStableUpdate(logRecord log) {
+		// Put data in movie rating
+		movieRatings.put(log.getUpdate().getMovie(), log.getUpdate().getRating());
+		
+		// Update value_timestamp
+		for(int a = 0; a < value_Timestamp.length; a++) {
+			if(value_Timestamp[a] < log.getTS()[a]) {
+				value_Timestamp[a] = log.getTS()[a];
+			}
+		}
+		
+		// Added ID to executed table list
+		operations.add(log.getUpdate().getupdateID());		
 	}
 
 

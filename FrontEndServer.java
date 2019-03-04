@@ -31,10 +31,18 @@ public class FrontEndServer implements FrontEndServerInterface {
 	public void updateRating(String movie, int rating){
 		BackEndServerInterface stub = findBackEndServer();
 		updateRequest update = new updateRequest(movie, rating, prev, updateID);
+		System.out.println(updateID);
+		for(int i : prev){
+			System.out.println(i);
+		}
 		try{
 			int[] ts = stub.updateRating(update);  // ts represents the returned timestamp
 			prev = mergeTimestamps(prev, ts);  // Merges the returned timestamp with current one
 		} catch (Exception e){}
+		for(int i : prev){
+			System.out.println(i);
+		}
+		System.out.println(updateID);
 		updateID += 1;
 	}
 
