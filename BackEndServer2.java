@@ -2,38 +2,285 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 	
 public class BackEndServer2 implements BackEndServerInterface {
 
-	private String status = "active";
-	Map<String, Integer> movieRatings = new HashMap<String, Integer>();
+	/* 
+	============================================
+	Variable definitions
+	============================================
+	*/  
 
-	// Default Constructor
-	public BackEndServer2() { }
+	// Variables relating to the server
+	private String status;
+	private String serverName;
+
+	// Variables relating to Gossip Architecture
+	Map<String, Integer> movieRatings;  // Holds the data
+	int[] value_Timestamp;  // Represents updates present in movieRating
+	ArrayList<logRecord> logRecords = new ArrayList<logRecord>();  // Represents all updates recieved
+	int[] replica_Timestamp;  // Represents updares accepted by RM (might not yet be processed)  
+	ArrayList<Integer> operations = new ArrayList<Integer>();  // Contains a list of updates that have been applied
+	int serverNum;  // Stores the server number
+
+
+
+
+
+	/* 
+	============================================
+	Default Constructor
+	============================================
+	*/  
+	public BackEndServer2(String name) {
+		movieRatings = new HashMap<String, Integer>();
+		value_Timestamp = new int[3];
+		replica_Timestamp = new int[3];
+		serverNum = 0;
+		status = "active";
+		serverName = name;
+	}	 
 	
+
+
+
+
+	/* 
+	============================================
+	Methods that will be remotely invoked
+	============================================
+	*/  
 	public String getStatus(){
 		return status;
 	}
 
-	public int retrieveRating(String movie){
-		return movieRatings.get(movie);
+	public int retrieveRating(queryRequest query){
+		// Compare timestamp prev and value_timestamp
+		boolean applyQuery = true;
+		for(int a = 0; a < query.getPrev().length; a++){
+			if(query.getPrev()[a] > value_Timestamp[a]){
+				applyQuery = false;
+			}
+		}
+
+		// NOTE== Should queue queries until they can be provided 
+		// However this involves implementing queue system at FE (not done yet)
+
+		System.out.println(applyQuery);
+
+		if(applyQuery == true) {
+			return movieRatings.get(query.getMovie());
+			// No need to return timestamp as it hasn't changed
+		}else {
+			requestAllGossipData();
+			// return movieRating and timestamp
+		}
+
+		return 0;
 	}
 
-	public void updateRating(String movie, int rating){
-		movieRatings.put(movie, rating);
+	public int[] updateRating(updateRequest update) {
+		// ts is a unique timestamp the RM assigns to the update
+		int[] ts = update.getPrev();
+
+		// Checks if RM has already processed the request
+		if(!(operations.contains(update.getupdateID()))){ 
+
+			// Increment replace timestamp for server
+			// Counts number of updates recieved from FE
+			replica_Timestamp[serverNum] += 1;
+		  
+			// Create the log record
+			ts[serverNum] = replica_Timestamp[serverNum];
+			logRecord log = new logRecord(serverNum, ts, update);
+			logRecords.add(log);
+
+			// Checks whether it can add the update
+			boolean applyUpdate = true;
+			for(int a = 0; a < value_Timestamp.length; a++) {
+				if(update.getPrev()[a] > value_Timestamp[a]) {
+					applyUpdate = false;
+				}
+			}
+
+			// Gets updates if needed
+			if(applyUpdate = false) {
+				requestAllGossipData();
+			}
+
+			// Add movie to movie rating (or update it)
+			movieRatings.put(update.getMovie(), update.getRating());
+
+			// Update value_timestamp
+			for(int a = 0; a < value_Timestamp.length; a++) {
+				if(value_Timestamp[a] < ts[a]) {
+					value_Timestamp[a] = ts[a];
+				}
+			
+			}
+			// Added ID to executed table list
+			operations.add(update.getupdateID());	
+		}
+		return ts;
 	}
 	
-	// Main method: 
-	// Instatntiates and registers an instance of the server with the rmi registry
+
+
+
+
+	/* 
+	============================================
+	Methods relating to gossip messaging 
+	============================================
+	*/  
+	
+	// Returns the log record
+	public ArrayList<logRecord> getLogRecord(){
+		return logRecords;
+	}
+
+	// Returns the replica timestamp
+	public int[] getReplace_Timestamp(){
+		return replica_Timestamp;
+	}
+
+	// Method gets data from other RM machines to synchronise with
+	public void requestAllGossipData(){
+		try{
+			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
+			String[] serverList = registry.list();
+			for(String registryServerName : serverList){
+				if(!(registryServerName.equals(serverName)) && !(registryServerName.equals("frontEnd"))){
+					BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(serverName);
+					ArrayList<logRecord> temp_Record = stub.getLogRecord();
+					int[] temp_replica = stub.getReplace_Timestamp();
+					updateLogs(temp_Record, temp_replica);
+				}
+			}
+		} catch (Exception e){
+			System.err.println("Exception in locating server: " + e.toString());
+			e.printStackTrace();
+		}
+		orderLogs();
+		addStableUpdates();
+	}
+
+	// Method takes data from another RM and
+	public void updateLogs(ArrayList<logRecord> incoming_logRecords, int[] incoming_replica_Timestamp) {
+
+		// Merge arriving log from RM with current log
+		for(logRecord log : incoming_logRecords) {
+			boolean addLog = false;
+
+			// If log's TS is greater than the replica's TS than add the log
+			for(int a = 0; a < replica_Timestamp.length; a++) {
+				if(log.getTS()[a] > replica_Timestamp[a]){
+					addLog = true;
+				}
+			}
+
+			// Add the log to the logRecords
+			if(addLog = true){
+				logRecords.add(log);
+			}
+		}
+
+		// Merges replica_timestamp with incoming timestamp 
+		for(int a = 0; a < incoming_replica_Timestamp.length; a++) {
+			if(replica_Timestamp[a] < incoming_replica_Timestamp[a]){
+				replica_Timestamp[a] = incoming_replica_Timestamp[a];
+			}
+		}
+	}
+
+	public void orderLogs() {
+		for(int a = 0; a < logRecords.size(); a++) {
+			for(int b = 1; b < (logRecords.size() - a); b++){
+				int[] ts_a = logRecords.get(b - 1).getTS();
+				int[] ts_b = logRecords.get(b).getTS();
+				boolean less = false;
+				boolean more = false;
+
+				for(int i = 0; i < ts_a.length; i++){
+					if(ts_a[i] > ts_b[i]){
+						more = true;
+					}else if(ts_a[i] < ts_b[i]){
+						less = true;
+					}
+				}
+
+				// Swap them 
+				if(more == true && less == false){
+					logRecord temp = logRecords.get(b - 1);
+					logRecords.set(b - 1, logRecords.get(b));
+					logRecords.set(b, temp);
+				}
+			}
+		}
+	}
+
+	// Apply updates that have become stable and not yet executed
+	public void addStableUpdates() {
+
+		// Loop through RM log of updates and update stable ones
+		for(logRecord log : logRecords){
+
+			// If update has not already been applied
+			if(!(operations.contains(log.getUpdate().getupdateID()))) {
+				boolean stable = true;
+
+				// Check is update is stable
+				for(int a = 0; a < value_Timestamp.length; a++){
+					if(log.getUpdate().getPrev()[a] > value_Timestamp[a]) {
+						stable = false;
+					}
+				}
+
+				// If the update is stable
+				if(stable == true){
+					applyStableUpdate(log);
+				}
+			}
+		}		
+
+		// Eliminate records from log and executed table 
+		// when they have been known to be applied everywhere (NOT IMPLEMENTED)
+	}
+
+	public void applyStableUpdate(logRecord log) {
+		// Put data in movie rating
+		movieRatings.put(log.getUpdate().getMovie(), log.getUpdate().getRating());
+		
+		// Update value_timestamp
+		for(int a = 0; a < value_Timestamp.length; a++) {
+			if(value_Timestamp[a] < log.getTS()[a]) {
+				value_Timestamp[a] = log.getTS()[a];
+			}
+		}
+		
+		// Added ID to executed table list
+		operations.add(log.getUpdate().getupdateID());		
+	}
+
+
+
+
+
+	/* 
+	============================================
+	Method that creates an instance of the front end object
+	============================================
+	*/  
     public static void main(String args[]) { 
 			try {
 				// Defines the server name
 				String name = "backEnd2";
 				
 				// Create server object
-				BackEndServer2 obj = new BackEndServer2();
+				BackEndServer1 obj = new BackEndServer1(name);
 
 				// Create remote object stub from server object
 				BackEndServerInterface stub = (BackEndServerInterface) UnicastRemoteObject.exportObject(obj, 0);

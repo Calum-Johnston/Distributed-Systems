@@ -78,7 +78,7 @@ public class BackEndServer1 implements BackEndServerInterface {
 			requestAllGossipData();
 			// return movieRating and timestamp
 		}
-		
+
 		return 0;
 	}
 
@@ -106,24 +106,24 @@ public class BackEndServer1 implements BackEndServerInterface {
 				}
 			}
 
-			// Applies the update
-			if(applyUpdate = true) {
-				movieRatings.put(update.getMovie(), update.getRating());
-				// Update value_timestamp
-				for(int a = 0; a < value_Timestamp.length; a++) {
-					if(value_Timestamp[a] < ts[a]) {
-						value_Timestamp[a] = ts[a];
-					}
-				}
-				// Added ID to executed table list
-				operations.add(update.getupdateID());
+			// Gets updates if needed
+			if(applyUpdate = false) {
+				requestAllGossipData();
 			}
 
-			// If not applied, means there has been an update elsewhere
-			// that has not been recieved by RM
+			// Add movie to movie rating (or update it)
+			movieRatings.put(update.getMovie(), update.getRating());
 
+			// Update value_timestamp
+			for(int a = 0; a < value_Timestamp.length; a++) {
+				if(value_Timestamp[a] < ts[a]) {
+					value_Timestamp[a] = ts[a];
+				}
+			
+			}
+			// Added ID to executed table list
+			operations.add(update.getupdateID());	
 		}
-
 		return ts;
 	}
 	
