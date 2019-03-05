@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.ListIterator;
 import java.util.Map;
 	
 public class BackEndServer1 implements BackEndServerInterface {
@@ -22,9 +23,8 @@ public class BackEndServer1 implements BackEndServerInterface {
 	Map<String, Integer> movieRatings;  // Holds the data
 	int[] backEndTS;  // Represents updates present in RM
 	ArrayList<logRecord> logRecords = new ArrayList<logRecord>();  // Represents all updates recieved
-	int[] backEndTS_Replica;  // Represents updares accepted by RM (might not yet be processed)  
 	ArrayList<Integer> operations = new ArrayList<Integer>();  // Contains a list of updates that have been applied
-	int[][] tableTS;  // Holds most recently accessed replica timestamps from other RM's
+	int[][] tableTS;  // Holds most recently accessed replica timestamps from other RM's and its own replica timestamp
 	int serverNumber;  // Stores the server number
 
 
@@ -39,7 +39,6 @@ public class BackEndServer1 implements BackEndServerInterface {
 	public BackEndServer1(String name) {
 		movieRatings = new HashMap<String, Integer>();
 		backEndTS = new int[3];
-		backEndTS_Replica = new int[3];
 		serverNumber = 0;
 		serverStatus = "active";
 		serverName = name;
@@ -89,10 +88,10 @@ public class BackEndServer1 implements BackEndServerInterface {
 
 			// Increment replace timestamp for server
 			// Counts number of updates recieved from FE
-			backEndTS_Replica[serverNumber] += 1;
+			tableTS[serverNumber][serverNumber] += 1;
 
 			// Create the log record
-			ts[serverNumber] = backEndTS_Replica[serverNumber];
+			ts[serverNumber] = tableTS[serverNumber][serverNumber];
 			logRecord log = new logRecord(serverNumber, ts, update);
 			logRecords.add(log);
 
@@ -141,8 +140,8 @@ public class BackEndServer1 implements BackEndServerInterface {
 	}
 
 	// Returns the replica timestamp
-	public int[] getReplace_Timestamp(){
-		return backEndTS_Replica;
+	public int[] getReplice_Timestamp(){
+		return tableTS[serverNumber];
 	}
 
 	public int getServerNumber() {
@@ -158,7 +157,7 @@ public class BackEndServer1 implements BackEndServerInterface {
 				if(!(registryServerName.equals(serverName)) && !(registryServerName.equals("frontEnd"))){
 					BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(registryServerName);
 					ArrayList<logRecord> temp_Record = stub.getLogRecord();
-					int[] temp_replica = stub.getReplace_Timestamp();
+					int[] temp_replica = stub.getReplice_Timestamp();
 					int temp_serverNumber = stub.getServerNumber();
 					tableTS[temp_serverNumber] = temp_replica.clone();
 					updateLogs(temp_Record, temp_replica);
@@ -170,17 +169,8 @@ public class BackEndServer1 implements BackEndServerInterface {
 		}
 		orderLogs();
 		addStableUpdates();
-		removeRedunantLogs();
-
-		for(logRecord log : logRecords){
-			System.out.print(log.getI() + " [");
-
-			for(int i = 0; i < 3; i ++){
-				System.out.print(log.getTS()[i] + " ");
-			}
-			System.out.print("]");
-			System.out.println(log.getUpdate().getupdateID());
-		}
+		removeRedundantLogs();
+		System.out.println("done");
 	}
 
 	// Method takes data from another RM and
@@ -191,8 +181,8 @@ public class BackEndServer1 implements BackEndServerInterface {
 			boolean addLog = false;
 
 			// If log's TS is greater than the replica's TS than add the log
-			for(int a = 0; a < backEndTS_Replica.length; a++) {
-				if(log.getTS()[a] > backEndTS_Replica[a]){
+			for(int a = 0; a < tableTS[serverNumber].length; a++) {
+				if(log.getTS()[a] > tableTS[serverNumber][a]){
 					addLog = true;
 				}
 			}
@@ -205,8 +195,8 @@ public class BackEndServer1 implements BackEndServerInterface {
 
 		// Merges backEndTS_Replica with incoming timestamp 
 		for(int a = 0; a < incoming_backEndTS_Replica.length; a++) {
-			if(backEndTS_Replica[a] < incoming_backEndTS_Replica[a]){
-				backEndTS_Replica[a] = incoming_backEndTS_Replica[a];
+			if(tableTS[serverNumber][a] < incoming_backEndTS_Replica[a]){
+				tableTS[serverNumber][a] = incoming_backEndTS_Replica[a];
 			}
 		}
 	}
@@ -278,20 +268,26 @@ public class BackEndServer1 implements BackEndServerInterface {
 	}
 
 	// Removes logs that have been recieved everywhere
-	public void removeRedunantLogs() {
-		for(logRecord log : logRecords) {
-			boolean removeRecord = true;
+	public void removeRedundantLogs() {
 
-			for(int i = 0; i < backEndTS_Replica.length; i++) {
+		ListIterator<logRecord> iter = logRecords.listIterator();
+
+		while(iter.hasNext()){
+			boolean removeRecord = true;
+			logRecord log = iter.next();
+
+			for(int i = 0; i < tableTS[serverNumber].length; i++) {
 				if(tableTS[i][log.getI()] < log.getTS()[log.getI()]){
 					removeRecord = false;
 				}
 			}
 
 			if(removeRecord) {
-				logRecords.remove(log);
+				iter.remove();
 			}
 		}
+
+		System.out.println(logRecords.size());
 	}
 
 
@@ -325,7 +321,7 @@ public class BackEndServer1 implements BackEndServerInterface {
 
 
 			} catch (Exception e) {
-				System.err.println("Back End Server exception: " + e.toString());
+				System.err.println("Back End Server 1 exception: " + e.toString());
 				e.printStackTrace();
 			}
     }

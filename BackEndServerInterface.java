@@ -8,6 +8,6 @@ public interface BackEndServerInterface extends Remote {
     public int[] updateRating(updateRequest update) throws RemoteException;
 
     public ArrayList<logRecord> getLogRecord() throws RemoteException;
-    public int[] getReplace_Timestamp() throws RemoteException;
+    public int[] getReplice_Timestamp() throws RemoteException;
     public int getServerNumber() throws RemoteException;
 }
