@@ -15,16 +15,16 @@ public class BackEndServer1 implements BackEndServerInterface {
 	*/  
 
 	// Variables relating to the server
-	private String status;
+	private String serverStatus;
 	private String serverName;
 
 	// Variables relating to Gossip Architecture
 	Map<String, Integer> movieRatings;  // Holds the data
-	int[] value_Timestamp;  // Represents updates present in movieRating
+	int[] backEndTS;  // Represents updates present in RM
 	ArrayList<logRecord> logRecords = new ArrayList<logRecord>();  // Represents all updates recieved
-	int[] replica_Timestamp;  // Represents updares accepted by RM (might not yet be processed)  
+	int[] backEndTS_Replica;  // Represents updares accepted by RM (might not yet be processed)  
 	ArrayList<Integer> operations = new ArrayList<Integer>();  // Contains a list of updates that have been applied
-	int serverNum;  // Stores the server number
+	int serverNumber;  // Stores the server number
 
 
 
@@ -37,10 +37,10 @@ public class BackEndServer1 implements BackEndServerInterface {
 	*/  
 	public BackEndServer1(String name) {
 		movieRatings = new HashMap<String, Integer>();
-		value_Timestamp = new int[3];
-		replica_Timestamp = new int[3];
-		serverNum = 0;
-		status = "active";
+		backEndTS = new int[3];
+		backEndTS_Replica = new int[3];
+		serverNumber = 0;
+		serverStatus = "active";
 		serverName = name;
 	}	 
 	
@@ -53,28 +53,26 @@ public class BackEndServer1 implements BackEndServerInterface {
 	Methods that will be remotely invoked
 	============================================
 	*/  
-	public String getStatus(){
-		return status;
+	public String getServerStatus(){
+		return serverStatus;
 	}
 
 	public queryReturn retrieveRating(queryRequest query){
-		// Compare timestamp prev and value_timestamp
+		// Compare timestamp prev and backEndTS
 		boolean applyQuery = true;
 		for(int a = 0; a < query.getPrev().length; a++){
-			if(query.getPrev()[a] > value_Timestamp[a]){
+			if(query.getPrev()[a] > backEndTS[a]){
 				applyQuery = false;
 			}
 		}
 
 		queryReturn returnQ;
 
-		System.out.println(applyQuery);
-
 		if(applyQuery == true) {
 			returnQ = new queryReturn(movieRatings.get(query.getMovie()), null, false);
 		}else {
 			requestAllGossipData();
-			returnQ = new queryReturn(movieRatings.get(query.getMovie()), value_Timestamp, true);
+			returnQ = new queryReturn(movieRatings.get(query.getMovie()), backEndTS, true);
 		}
 		return returnQ;
 	}
@@ -89,34 +87,33 @@ public class BackEndServer1 implements BackEndServerInterface {
 
 			// Increment replace timestamp for server
 			// Counts number of updates recieved from FE
-			replica_Timestamp[serverNum] += 1;
+			backEndTS_Replica[serverNumber] += 1;
 
 			// Create the log record
-			ts[serverNum] = replica_Timestamp[serverNum];
-			logRecord log = new logRecord(serverNum, ts, update);
+			ts[serverNumber] = backEndTS_Replica[serverNumber];
+			logRecord log = new logRecord(serverNumber, ts, update);
 			logRecords.add(log);
 
 			// Checks whether it can add the update
 			boolean applyUpdate = true;
-			for(int a = 0; a < value_Timestamp.length; a++) {
-				if(update.getPrev()[a] > value_Timestamp[a]) {
+			for(int a = 0; a < backEndTS.length; a++) {
+				if(update.getPrev()[a] > backEndTS[a]) {
 					applyUpdate = false;
 				}
 			}
 
 			// Gets updates if needed
 			if(applyUpdate == false) {
-				System.out.println("hi");
 				requestAllGossipData();
 			}
 
 			// Add movie to movie rating (or update it)
 			movieRatings.put(update.getMovie(), update.getRating());
 
-			// Update value_timestamp
-			for(int a = 0; a < value_Timestamp.length; a++) {
-				if(value_Timestamp[a] < ts[a]) {
-					value_Timestamp[a] = ts[a];
+			// Update backEndTS
+			for(int a = 0; a < backEndTS.length; a++) {
+				if(backEndTS[a] < ts[a]) {
+					backEndTS[a] = ts[a];
 				}
 			
 			}
@@ -143,7 +140,7 @@ public class BackEndServer1 implements BackEndServerInterface {
 
 	// Returns the replica timestamp
 	public int[] getReplace_Timestamp(){
-		return replica_Timestamp;
+		return backEndTS_Replica;
 	}
 
 	// Method gets data from other RM machines to synchronise with
@@ -165,22 +162,18 @@ public class BackEndServer1 implements BackEndServerInterface {
 		}
 		orderLogs();
 		addStableUpdates();
-
-		for(Map.Entry<String, Integer> entry : movieRatings.entrySet()){
-			System.out.println(entry.getKey() + ": " + entry.getValue());
-		}
 	}
 
 	// Method takes data from another RM and
-	public void updateLogs(ArrayList<logRecord> incoming_logRecords, int[] incoming_replica_Timestamp) {
+	public void updateLogs(ArrayList<logRecord> incoming_logRecords, int[] incoming_backEndTS_Replica) {
 
 		// Merge arriving log from RM with current log
 		for(logRecord log : incoming_logRecords) {
 			boolean addLog = false;
 
 			// If log's TS is greater than the replica's TS than add the log
-			for(int a = 0; a < replica_Timestamp.length; a++) {
-				if(log.getTS()[a] > replica_Timestamp[a]){
+			for(int a = 0; a < backEndTS_Replica.length; a++) {
+				if(log.getTS()[a] > backEndTS_Replica[a]){
 					addLog = true;
 				}
 			}
@@ -191,10 +184,10 @@ public class BackEndServer1 implements BackEndServerInterface {
 			}
 		}
 
-		// Merges replica_timestamp with incoming timestamp 
-		for(int a = 0; a < incoming_replica_Timestamp.length; a++) {
-			if(replica_Timestamp[a] < incoming_replica_Timestamp[a]){
-				replica_Timestamp[a] = incoming_replica_Timestamp[a];
+		// Merges backEndTS_Replica with incoming timestamp 
+		for(int a = 0; a < incoming_backEndTS_Replica.length; a++) {
+			if(backEndTS_Replica[a] < incoming_backEndTS_Replica[a]){
+				backEndTS_Replica[a] = incoming_backEndTS_Replica[a];
 			}
 		}
 	}
@@ -236,8 +229,8 @@ public class BackEndServer1 implements BackEndServerInterface {
 				boolean stable = true;
 
 				// Check is update is stable
-				for(int a = 0; a < value_Timestamp.length; a++){
-					if(log.getUpdate().getPrev()[a] > value_Timestamp[a]) {
+				for(int a = 0; a < backEndTS.length; a++){
+					if(log.getUpdate().getPrev()[a] > backEndTS[a]) {
 						stable = false;
 					}
 				}
@@ -257,10 +250,10 @@ public class BackEndServer1 implements BackEndServerInterface {
 		// Put data in movie rating
 		movieRatings.put(log.getUpdate().getMovie(), log.getUpdate().getRating());
 		
-		// Update value_timestamp
-		for(int a = 0; a < value_Timestamp.length; a++) {
-			if(value_Timestamp[a] < log.getTS()[a]) {
-				value_Timestamp[a] = log.getTS()[a];
+		// Update backEndTS
+		for(int a = 0; a < backEndTS.length; a++) {
+			if(backEndTS[a] < log.getTS()[a]) {
+				backEndTS[a] = log.getTS()[a];
 			}
 		}
 		

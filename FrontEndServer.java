@@ -5,12 +5,12 @@ import java.rmi.server.UnicastRemoteObject;
 	
 public class FrontEndServer implements FrontEndServerInterface {
 
-	int[] prev;  // Represents the latest version of data accessed by FE / observed by the client
+	int[] frontEndTS;  // Represents the latest version of data accessed by FE / observed by the client
 	int updateID;  // Represents the ID for updates 
 
 	// Default Constructor
 	public FrontEndServer() {
-		prev = new int[3];
+		frontEndTS = new int[3];
 		updateID = 0;
 	}
 
@@ -18,14 +18,13 @@ public class FrontEndServer implements FrontEndServerInterface {
 
 		// QUERY OPERATION
 	public int retrieveRating(String movie, String server){
-		int rating = 0;
 		BackEndServerInterface stub = findBackEndServer(server);
-		queryRequest query = new queryRequest(movie, prev);
+		queryRequest query = new queryRequest(movie, frontEndTS);
 		queryReturn q = null;
 		try{
 			q = stub.retrieveRating(query);
 			if(q.getUpdate() == true){
-				prev = mergeTimestamps(prev, q.getvalue_TS());
+				frontEndTS = mergeTimestamps(frontEndTS, q.getvalue_TS());
 			}
 		} catch (Exception e){
 			System.out.println("Error in getting Query");
@@ -33,13 +32,14 @@ public class FrontEndServer implements FrontEndServerInterface {
 		return q.getRating();
 	}
 
-	// UPDATE/INSERT OPERATION
+	// UPDATE OPERATION
 	public void updateRating(String movie, int rating, String server){
 		BackEndServerInterface stub = findBackEndServer(server);
-		updateRequest update = new updateRequest(movie, rating, prev, updateID);
+		updateRequest update = new updateRequest(movie, rating, frontEndTS, updateID);
+		int[] returnedTS = null;
 		try{
-			int[] ts = stub.updateRating(update);  // ts represents the returned timestamp
-			prev = mergeTimestamps(prev, ts);  // Merges the returned timestamp with current one
+			returnedTS = stub.updateRating(update);  // ts represents the returned timestamp
+			frontEndTS = mergeTimestamps(frontEndTS, returnedTS);  // Merges the returned timestamp with current one
 		} catch (Exception e){}
 		stub = null;
 		updateID += 1;
