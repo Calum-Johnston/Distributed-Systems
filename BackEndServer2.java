@@ -24,6 +24,7 @@ public class BackEndServer2 implements BackEndServerInterface {
 	ArrayList<logRecord> logRecords = new ArrayList<logRecord>();  // Represents all updates recieved
 	int[] backEndTS_Replica;  // Represents updares accepted by RM (might not yet be processed)  
 	ArrayList<Integer> operations = new ArrayList<Integer>();  // Contains a list of updates that have been applied
+	int[][] tableTS;  // Holds most recently accessed replica timestamps from other RM's
 	int serverNumber;  // Stores the server number
 
 
@@ -42,6 +43,7 @@ public class BackEndServer2 implements BackEndServerInterface {
 		serverNumber = 1;
 		serverStatus = "active";
 		serverName = name;
+		tableTS = new int[3][3];
 	}	 
 	
 
@@ -143,6 +145,10 @@ public class BackEndServer2 implements BackEndServerInterface {
 		return backEndTS_Replica;
 	}
 
+	public int getServerNumber() {
+		return serverNumber;
+	}
+
 	// Method gets data from other RM machines to synchronise with
 	public void requestAllGossipData(){
 		try{
@@ -153,6 +159,8 @@ public class BackEndServer2 implements BackEndServerInterface {
 					BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(registryServerName);
 					ArrayList<logRecord> temp_Record = stub.getLogRecord();
 					int[] temp_replica = stub.getReplace_Timestamp();
+					int temp_serverNumber = stub.getServerNumber();
+					tableTS[temp_serverNumber] = temp_replica.clone();
 					updateLogs(temp_Record, temp_replica);
 				}
 			}
@@ -162,6 +170,17 @@ public class BackEndServer2 implements BackEndServerInterface {
 		}
 		orderLogs();
 		addStableUpdates();
+		removeRedunantLogs();
+
+		for(logRecord log : logRecords){
+			System.out.print(log.getI() + " [");
+
+			for(int i = 0; i < 3; i ++){
+				System.out.print(log.getTS()[i] + " ");
+			}
+			System.out.print("]");
+			System.out.println(log.getUpdate().getupdateID());
+		}
 	}
 
 	// Method takes data from another RM and
@@ -241,9 +260,6 @@ public class BackEndServer2 implements BackEndServerInterface {
 				}
 			}
 		}		
-
-		// Eliminate records from log and executed table 
-		// when they have been known to be applied everywhere (NOT IMPLEMENTED)
 	}
 
 	public void applyStableUpdate(logRecord log) {
@@ -259,6 +275,23 @@ public class BackEndServer2 implements BackEndServerInterface {
 		
 		// Added ID to executed table list
 		operations.add(log.getUpdate().getupdateID());		
+	}
+
+	// Removes logs that have been recieved everywhere
+	public void removeRedunantLogs() {
+		for(logRecord log : logRecords) {
+			boolean removeRecord = true;
+
+			for(int i = 0; i < backEndTS_Replica.length; i++) {
+				if(tableTS[i][log.getI()] < log.getTS()[log.getI()]){
+					removeRecord = false;
+				}
+			}
+
+			if(removeRecord) {
+				logRecords.remove(log);
+			}
+		}
 	}
 
 

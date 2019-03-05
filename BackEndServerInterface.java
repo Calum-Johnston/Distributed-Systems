@@ -9,4 +9,5 @@ public interface BackEndServerInterface extends Remote {
 
     public ArrayList<logRecord> getLogRecord() throws RemoteException;
     public int[] getReplace_Timestamp() throws RemoteException;
+    public int getServerNumber() throws RemoteException;
 }
