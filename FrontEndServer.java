@@ -17,8 +17,8 @@ public class FrontEndServer implements FrontEndServerInterface {
 
 
 		// QUERY OPERATION
-	public int retrieveRating(String movie, String server){
-		BackEndServerInterface stub = findBackEndServer(server);
+	public int retrieveRating(String movie){
+		BackEndServerInterface stub = findBackEndServer();
 		queryRequest query = new queryRequest(movie, frontEndTS);
 		queryReturn q = null;
 		try{
@@ -33,8 +33,8 @@ public class FrontEndServer implements FrontEndServerInterface {
 	}
 
 	// UPDATE OPERATION
-	public void updateRating(String movie, int rating, String server){
-		BackEndServerInterface stub = findBackEndServer(server);
+	public void updateRating(String movie, int rating){
+		BackEndServerInterface stub = findBackEndServer();
 		updateRequest update = new updateRequest(movie, rating, frontEndTS, updateID);
 		int[] returnedTS = null;
 		try{
@@ -50,18 +50,16 @@ public class FrontEndServer implements FrontEndServerInterface {
 
 
 	// Implement methods from ServerInterface;
-  	public BackEndServerInterface findBackEndServer(String server) {
+  	public BackEndServerInterface findBackEndServer() {
 		try{
 			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
-			BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(server);
-			return stub;
-			/*String[] serverList = registry.list();
+			String[] serverList = registry.list();
 			for(String serverName : serverList){
 				BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(serverName);
-				if(stub.getStatus().equals("active")){
+				if(stub.getServerStatus().equals("active")){
 					return stub;				
 				}
-			}*/
+			}
 		} catch (Exception e){
 			System.err.println("Exception in locating server: " + e.toString());
 			e.printStackTrace();
@@ -85,7 +83,7 @@ public class FrontEndServer implements FrontEndServerInterface {
 
 	// Main method: 
 	// Instatntiates and registers an instance of the server with the rmi registry
-    public static void main(String args[]) { 
+  public static void main(String args[]) { 
 		try {
 			// Defines the server name
 			String name = "frontEnd";

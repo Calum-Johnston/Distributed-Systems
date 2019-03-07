@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Map;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.FileReader;
 	
 public class BackEndServer1 implements BackEndServerInterface {
 
@@ -43,8 +46,31 @@ public class BackEndServer1 implements BackEndServerInterface {
 		serverStatus = "active";
 		serverName = name;
 		tableTS = new int[3][3];
+		readMovieData();
 	}	 
 	
+
+
+
+
+	/* 
+	============================================
+	Default Constructor
+	============================================
+	*/  
+
+	public void readMovieData() {
+		try(BufferedReader in  = new BufferedReader(new FileReader("moviedata.txt"))){
+			String str;
+			while((str = in.readLine()) != null){
+				String[] data = str.split(",");
+				movieRatings.put(data[0], Integer.parseInt(data[1]));
+			}
+		} catch (IOException e){
+			System.out.println("Failed to read in movie data set");
+		}
+	}
+
 
 
 
@@ -69,12 +95,22 @@ public class BackEndServer1 implements BackEndServerInterface {
 
 		queryReturn returnQ;
 
+		// Gets gossip messages and then creates a query return (-1 rating means movie not present)
 		if(applyQuery == true) {
-			returnQ = new queryReturn(movieRatings.get(query.getMovie()), null, false);
+			try{
+				returnQ = new queryReturn(movieRatings.get(query.getMovie()), null, false);
+			} catch (Exception e){
+				returnQ = new queryReturn(-1, null, false);
+			}
 		}else {
 			requestAllGossipData();
-			returnQ = new queryReturn(movieRatings.get(query.getMovie()), backEndTS, true);
+			try{
+				returnQ = new queryReturn(movieRatings.get(query.getMovie()), backEndTS, true);
+			} catch (Exception e){
+				returnQ = new queryReturn(-1, backEndTS, true);
+			}
 		}
+
 		return returnQ;
 	}
 
@@ -156,11 +192,13 @@ public class BackEndServer1 implements BackEndServerInterface {
 			for(String registryServerName : serverList){
 				if(!(registryServerName.equals(serverName)) && !(registryServerName.equals("frontEnd"))){
 					BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(registryServerName);
-					ArrayList<logRecord> temp_Record = stub.getLogRecord();
-					int[] temp_replica = stub.getReplice_Timestamp();
-					int temp_serverNumber = stub.getServerNumber();
-					tableTS[temp_serverNumber] = temp_replica.clone();
-					updateLogs(temp_Record, temp_replica);
+					if(!(stub.getServerStatus().equals("offline"))){
+						ArrayList<logRecord> temp_Record = stub.getLogRecord();
+						int[] temp_replica = stub.getReplice_Timestamp();
+						int temp_serverNumber = stub.getServerNumber();
+						tableTS[temp_serverNumber] = temp_replica.clone();
+						updateLogs(temp_Record, temp_replica);
+					}	
 				}
 			}
 		} catch (Exception e){
@@ -170,7 +208,6 @@ public class BackEndServer1 implements BackEndServerInterface {
 		orderLogs();
 		addStableUpdates();
 		removeRedundantLogs();
-		System.out.println("done");
 	}
 
 	// Method takes data from another RM and
@@ -286,8 +323,6 @@ public class BackEndServer1 implements BackEndServerInterface {
 				iter.remove();
 			}
 		}
-
-		System.out.println(logRecords.size());
 	}
 
 
