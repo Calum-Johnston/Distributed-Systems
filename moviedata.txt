@@ -4,3 +4,5 @@ Toy Story,9
 Hacksaw Ridge,9
 The Lego Movie,8
 The Lego Movie 2,9
+Fight Club,10
+The Shawshank Redemption,10

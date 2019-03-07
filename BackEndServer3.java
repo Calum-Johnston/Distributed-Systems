@@ -190,7 +190,7 @@ public class BackEndServer3 implements BackEndServerInterface {
 			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
 			String[] serverList = registry.list();
 			for(String registryServerName : serverList){
-				if(!(registryServerName.equals(serverName)) && !(registryServerName.equals("frontEnd"))){
+				if(!(registryServerName.equals(serverName)) && !(registryServerName.contains("front"))){
 					BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(registryServerName);
 					if(!(stub.getServerStatus().equals("offline"))){
 						ArrayList<logRecord> temp_Record = stub.getLogRecord();
@@ -208,7 +208,6 @@ public class BackEndServer3 implements BackEndServerInterface {
 		orderLogs();
 		addStableUpdates();
 		removeRedundantLogs();
-		System.out.println("done");
 	}
 
 	// Method takes data from another RM and
@@ -324,8 +323,6 @@ public class BackEndServer3 implements BackEndServerInterface {
 				iter.remove();
 			}
 		}
-
-		System.out.println(logRecords.size());
 	}
 
 

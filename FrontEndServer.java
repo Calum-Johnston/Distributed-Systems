@@ -27,22 +27,27 @@ public class FrontEndServer implements FrontEndServerInterface {
 				frontEndTS = mergeTimestamps(frontEndTS, q.getvalue_TS());
 			}
 		} catch (Exception e){
-			System.out.println("Error in getting Query");
+			System.out.println("Error in getting query: " + e.toString());
+			return -2;
 		}
 		return q.getRating();
 	}
 
 	// UPDATE OPERATION
-	public void updateRating(String movie, int rating){
+	public boolean updateRating(String movie, int rating){
 		BackEndServerInterface stub = findBackEndServer();
 		updateRequest update = new updateRequest(movie, rating, frontEndTS, updateID);
 		int[] returnedTS = null;
 		try{
 			returnedTS = stub.updateRating(update);  // ts represents the returned timestamp
 			frontEndTS = mergeTimestamps(frontEndTS, returnedTS);  // Merges the returned timestamp with current one
-		} catch (Exception e){}
+		} catch (Exception e){
+				System.out.println("Error in getting Update: " + e.toString());
+				return false;
+		}
 		stub = null;
 		updateID += 1;
+		return true;
 	}
 
 
@@ -50,19 +55,35 @@ public class FrontEndServer implements FrontEndServerInterface {
 
 
 	// Implement methods from ServerInterface;
-  	public BackEndServerInterface findBackEndServer() {
+  public BackEndServerInterface findBackEndServer() {
+		int count = 0;
+
 		try{
 			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 8043);
 			String[] serverList = registry.list();
+
+			// Check for active servers
 			for(String serverName : serverList){
-				BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(serverName);
-				if(stub.getServerStatus().equals("active")){
-					return stub;				
+				System.out.println(serverName);
+				if(!(serverName.contains("front"))){
+					BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(serverName);
+					if(stub.getServerStatus().equals("active")){
+						return stub;				
+					}
+				}
+			}
+
+			// Check for overloaded servers
+			for(String serverName : serverList){
+				if(!(serverName.contains("front"))){
+					BackEndServerInterface stub = (BackEndServerInterface) registry.lookup(serverName);
+					if(stub.getServerStatus().equals("overloaded")){
+						return stub;				
+					}
 				}
 			}
 		} catch (Exception e){
 			System.err.println("Exception in locating server: " + e.toString());
-			e.printStackTrace();
 		}
 		return null;
 	}
@@ -86,7 +107,7 @@ public class FrontEndServer implements FrontEndServerInterface {
   public static void main(String args[]) { 
 		try {
 			// Defines the server name
-			String name = "frontEnd";
+			String name = "frontEnd1";
 				
 			// Create server object
 			FrontEndServer obj = new FrontEndServer();
@@ -101,11 +122,10 @@ public class FrontEndServer implements FrontEndServerInterface {
 			registry.rebind(name, stub);
 
 			// Write ready message to console
-			System.err.println("Front End Server ==== READY");
+			System.err.println("Front End Server 1 ==== READY");
 
 		} catch (Exception e) {
-			System.err.println("FRont End Server exception: " + e.toString());
-			e.printStackTrace();
+			System.err.println("Front End Server 1 exception: " + e.toString());
 		}
     }
 }

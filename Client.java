@@ -12,7 +12,7 @@ public class Client {
     public static void main(String[] args) {
 
 			// Gets the name of the server to connect to (Front End Server)
-			String host = (args.length < 1) ? "frontEnd" : args[0];
+			String host = (args.length < 1) ? "frontEnd1" : args[0];
 
 			try {
 				// Get registry
@@ -43,8 +43,7 @@ public class Client {
 				} while(!valid);
 
 			} catch (Exception e) {
-				System.err.println("Client exception: " + e.toString());
-				e.printStackTrace();
+				System.err.println("Cannot setup client: " + e.toString());
 			}
 	}
 	
@@ -76,29 +75,38 @@ public class Client {
 		String movie = getMovieName();
 		int rating = 0;
 		try{
+			clearScreen();
+			System.out.println("=== Attempting to query the records ===");
 			rating = stub.retrieveRating(movie);
 			if(rating == - 1){
-				System.out.println("The movie: " + movie + " does not exist");
-			}else {
-				System.out.println("The movie: " + movie + " has a rating of: " + rating);
+				System.out.println("\nThe movie: " + movie + " does not exist\n");
+			}else if(rating == -2){
+				System.out.println("\nQuery unsuccessful - could not complete query\n");
+			}else{
+				System.out.println("\nThe movie: " + movie + " has a rating of: " + rating + "\n");
 			}
 		} catch (Exception e){
 			System.out.println("Error in retrieving rating: " + e.toString());
-			e.printStackTrace();
 		}
 	}
 
 	// Invokes the updateRating method on the FE object
 	public static void updateRating(FrontEndServerInterface stub){
 		clearScreen();
-		String movie = getMovieName();
-		int rating = getMovieRating();
+		String movie = getMovieName(); clearScreen();
+		int rating = getMovieRating(); 
+		boolean outcome = false;
 		try{
-			System.out.println("Updating record");
-			stub.updateRating(movie, rating);
+			clearScreen();
+			System.out.println("=== Attempting to update the records ===");
+			outcome = stub.updateRating(movie, rating);
+			if(outcome == false) {
+				System.out.println("\nUpdate unsuccessful - could not complete update\n");
+			}else{
+				System.out.println("\nUpdate successful\n");
+			}
 		} catch (Exception e){
 			System.out.println("Error in updating rating: " + e.toString());
-			e.printStackTrace();
 		}
 	}
 
