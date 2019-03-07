@@ -1,7 +1,8 @@
-Chnage gossip messages so all servers send gossip messages then the log updates
+THINGS TO DO:
 
-
-- Sorting of stableUpdates array
-
-
-- Not calling stub in front end??
+- Implement checks so program doesn't crash when invalid movie name passed
+- Sort out commenting of code
+- Simplify code
+- Write instructions on how to run
+- Make window batch files??
+- Submit
